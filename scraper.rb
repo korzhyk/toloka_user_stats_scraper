@@ -3,8 +3,8 @@ require 'mechanize'
 require 'filesize'
 
 $agent = Mechanize.new
-$site_url = "https://toloka.to"
-$login_url = "https://toloka.to/login.php?redirect=index.php"
+$site_url = "http://toloka.to"
+$login_url = "http://toloka.to/login.php?redirect=index.php"
 $recent_registered = nil
 
 def parse_user(id, data={}, stats={})
