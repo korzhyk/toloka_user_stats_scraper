@@ -17,12 +17,20 @@ def parse_user(id, data={}, stats={})
     src_re = /avatars/.match(user_picture['src'])
     user_info = $agent.page.search('.forumline table')[0]
     data[:picture] = user_picture && src_re ? $agent.resolve(user_picture['src']).to_s : nil
-    data[:joined] = parse_date(user_info.search('td')[1].text)
-    data[:last_seen] = parse_date(user_info.search('td')[3].text)
+    user_info.search('td').each do |td|
+       if td.text.include? "З нами з:"
+           data[:joined] = parse_date(td.next.next.text)
+       end
+       if td.text.include? "Востаннє:"
+           data[:last_seen] = parse_date(td.next.next.text)
+       end
+    end
+    # data[:joined] = parse_date(user_info.search('td')[1].text)
+    # data[:last_seen] = parse_date(user_info.search('td')[3].text)
     $recent_registered = true if data[:joined] > Date.today - 30
     return if data[:joined] === data[:last_seen]
     return if data[:last_seen].nil? || data[:last_seen] < Date.today - 180
-    user_stats = $agent.page.search('.forumline table')[2]
+    user_stats = $agent.page.search('.forumline table').last
     if user_stats
         stats[:user_id] = id
         stats[:date] = Date.today
@@ -37,6 +45,7 @@ def parse_user(id, data={}, stats={})
     end
     ScraperWiki::save_sqlite([:id], data, 'users')
     sleep 1
+    data
 end
 
 def parse_stats(stats_node, stats={})
@@ -97,6 +106,7 @@ def parse_date(str)
 end
 
 login()
+
 fetch_last_user_id()
 
 $start_num = ScraperWiki::get_var('last_user') || 1
